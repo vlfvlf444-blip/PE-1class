@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>1학년 체육 수행평가 보조부</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#f4f6f9; --card:#fff; --ink:#1d2433; --sub:#667085; --line:#e3e7ee;
+  --vb:#d9730d; --vb-soft:#fdf0dc; --ls:#d12f45; --ls-soft:#fde8ea; --pb:#2f6fdb; --sum:#7a4fd1; --sum-soft:#f1ebfc;
+  --warn:#d92d20; --input:#fffbea; --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"맑은 고딕","Apple SD Gothic Neo",sans-serif;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;max-width:1100px;margin:0 auto}
+.top h1{font-size:17px;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top h1 small{display:block;font-size:12px;color:var(--sub);font-weight:500}
+.status{font-size:12px;color:var(--sub);white-space:nowrap}
+.status.err{color:var(--warn);font-weight:600}
+.status.busy::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#f5a524;margin-right:6px;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:7px 10px;cursor:pointer;font-size:13px}
+.iconbtn:hover{background:#f0f2f6}
+.tabs{display:flex;gap:6px;padding:0 16px 10px;max-width:1100px;margin:0 auto;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap;font-weight:600;font-size:14px}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab.v-vb.on{background:var(--vb);border-color:var(--vb)}
+.tab.v-ls.on{background:var(--ls);border-color:var(--ls)}
+.tab.v-sum.on{background:var(--sum);border-color:var(--sum)}
+.sep{width:1px;background:var(--line);margin:4px 4px;flex:none}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.bar h2{font-size:18px;margin:0 auto 0 0}
+.btn{border:none;border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600;background:#e9edf3}
+.btn:hover{filter:brightness(.96)}
+.btn.primary{background:var(--ink);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:center;white-space:nowrap}
+thead th{background:#f8f9fb;font-size:12.5px;color:var(--sub);font-weight:700;position:sticky;top:0}
+thead tr.group th{font-size:13px;color:var(--ink)}
+th.g-vb{background:var(--vb-soft);color:var(--vb)} th.g-ls{background:var(--ls-soft);color:var(--ls)} th.g-sum{background:var(--sum-soft);color:var(--sum)}
+td.no{color:var(--sub);width:44px}
+td.name,th.name{text-align:left;position:sticky;left:0;background:var(--card);z-index:1;font-weight:600;min-width:84px}
+thead th.name{background:#f8f9fb;z-index:3}
+td.out{color:var(--sub);min-width:44px}
+td.tot{font-weight:800;font-size:16px;min-width:56px}
+td.tot.vb{color:var(--vb)} td.tot.ls{color:var(--ls)} td.tot.sum{color:var(--sum)}
+tr.off td:not(.no):not(.name){opacity:.45}
+tr.off td.tot,tr.off td.note{opacity:1}
+tr.saving td.no{color:#f5a524;font-weight:700}
+tr.failed td.no{color:var(--warn);font-weight:700}
+input.cell{width:56px;padding:7px 4px;border:1px solid #e6dca8;background:var(--input);border-radius:8px;text-align:center;font-size:16px;font-weight:600}
+input.cell:focus{outline:2px solid var(--pb);border-color:transparent;background:#fff}
+input.cell.bad{border-color:var(--warn);background:#fff1f0}
+input.cell:disabled{background:#f2f2f2;border-color:#eee}
+select.note{padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:13px}
+select.note.set{background:#fff4e5;border-color:#f5c27a;font-weight:700;color:#b54708}
+tfoot td{background:#fafbfc;font-weight:700;font-size:13px}
+tfoot td.lbl{text-align:left;color:var(--sub);position:sticky;left:0;background:#fafbfc}
+.empty{padding:40px 16px;text-align:center;color:var(--sub)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+.hint{font-size:12.5px;color:var(--sub);margin:10px 2px 0}
+.rubric{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.rubric .card{padding:16px}
+.rubric h3{margin:0 0 4px;font-size:16px}
+.rubric p{margin:0 0 10px;color:var(--sub);font-size:13px;line-height:1.5}
+.rubric table{min-width:0}
+.rubric td,.rubric th{padding:5px 6px;font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.kpi span{font-size:12px;color:var(--sub);display:block}
+.kpi b{font-size:22px}
+.modal{position:fixed;inset:0;background:rgba(16,24,40,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.dialog{background:var(--card);border-radius:16px;max-width:520px;width:100%;padding:20px;max-height:90vh;overflow:auto}
+.dialog h3{margin:0 0 6px}
+.dialog p{color:var(--sub);font-size:13px;line-height:1.55;margin:0 0 14px}
+.dialog label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+.dialog input[type=text],.dialog input[type=password],.dialog textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px}
+.dialog textarea{min-height:260px;font-family:inherit;line-height:1.6}
+.dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.msg{font-size:13px;margin-top:10px;min-height:18px}
+.msg.err{color:var(--warn)} .msg.ok{color:#1f9d55}
+a.btn{color:inherit;text-decoration:none}
+small.tag{display:block;font-weight:500;font-size:11px;color:#b54708}
+input.cell.time{width:62px}
+table.t-ls input.cell{width:50px} table.t-ls input.cell.time{width:62px}
+small.sub{display:block;font-size:11px;color:var(--sub);margin-top:2px;min-height:13px}
+@media (max-width:640px){
+  .top{padding:10px 12px;gap:6px} main{padding:10px}
+  .top h1{font-size:15px} .top h1 small{display:none}
+  .iconbtn{padding:6px 8px;font-size:12px}
+  .tabs{flex-wrap:wrap;padding:0 12px 10px}
+  .tab{padding:6px 12px;font-size:13px}
+  .sep{display:none}
+  .bar h2{font-size:16px;width:100%}
+  .btn{padding:8px 11px;font-size:13px}
+  table{min-width:0}
+  th,td{padding:5px 3px}
+  thead th{font-size:11.5px;white-space:normal;line-height:1.25}
+  td.no{width:24px;font-size:12px}
+  thead th:first-child{white-space:nowrap}
+  td.name,th.name{min-width:56px;font-size:14px}
+  input.cell{width:42px;padding:7px 2px}
+  table.t-ls input.cell{width:40px} table.t-ls input.cell.time,input.cell.time{width:50px}
+  td.name,th.name{white-space:normal;word-break:keep-all;max-width:64px;line-height:1.2}
+  td.name{font-size:13px}
+  table.t-vb td:has(> input.cell){vertical-align:top;padding-top:8px}
+  select.note{max-width:52px}
+  table.t-vb input.cell{width:38px}
+  table.t-vb th,table.t-vb td{padding-left:2px;padding-right:2px}
+  select.note{padding:5px 0;font-size:12px;max-width:58px}
+  td.out{min-width:30px;font-size:13px}
+  td.tot{min-width:36px;font-size:15px}
+}
+@media print{
+  header,.bar .btn,.hint{display:none} body{background:#fff} .card{border:none}
+  input.cell{border:none;background:none} select.note{border:none;appearance:none;background:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>1학년 체육 수행평가 보조부<small>2026학년도 2학기 · 신어중학교</small></h1>
+    <span id="status" class="status"></span>
+    <button class="iconbtn" id="btnReload" title="구글시트에서 다시 불러오기">↻ 새로고침</button>
+    <button class="iconbtn" id="btnSettings">⚙ 설정</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</header>
+
+<main id="main"></main>
+
+<!-- 설정 -->
+<div class="modal" id="mSettings">
+  <div class="dialog">
+    <h3>구글시트 연결</h3>
+    <p id="setDesc">1학년용 Apps Script를 웹 앱으로 배포한 뒤 받은 URL과, 코드 맨 위 <b>PIN</b>에 정한 비밀번호를 입력하세요. 이 기기의 브라우저에만 저장됩니다.</p>
+    <label for="inUrl">웹 앱 URL</label>
+    <input type="text" id="inUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+    <label for="inPin">비밀번호</label>
+    <input type="password" id="inPin" autocomplete="current-password">
+    <div class="msg" id="setMsg"></div>
+    <div class="row">
+      <button class="btn" id="btnSetCancel">닫기</button>
+      <button class="btn primary" id="btnSetSave">연결</button>
+    </div>
+  </div>
+</div>
+
+<!-- 명렬 -->
+<div class="modal" id="mRoster">
+  <div class="dialog">
+    <h3 id="rosterTitle">명렬 입력</h3>
+    <p>한 줄에 한 명씩 붙여 넣으세요. <b>이름만</b> 쓰면 위에서부터 1번, 2번… 순서로 들어가고, <b>번호와 이름</b>(예: <code>3 홍길동</code>, 엑셀에서 두 칸 복사)을 쓰면 그 번호로 들어갑니다. 이미 입력한 점수는 번호 기준으로 그대로 유지됩니다.</p>
+    <textarea id="rosterText" placeholder="1	강민정&#10;2	김도희&#10;3	김아라"></textarea>
+    <div class="msg" id="rosterMsg"></div>
+    <div class="row">
+      <button class="btn" id="btnRosterCancel">취소</button>
+      <button class="btn primary" id="btnRosterSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 설정 ===================== */
+// 1학년 구글시트(Apps Script) 웹 앱 주소 — 배포 후 받은 주소를 여기에 넣으면 접속할 때 비밀번호만 입력하면 됩니다
+const API_URL = '';
+const CLASSES = ['1-1', '1-2', '1-3'];
+const MAXN = 35;
+const VIEWS = [
+  { id: 'vb', label: '배구', cls: 'v-vb' },
+  { id: 'ls', label: '레이저 사격', cls: 'v-ls' },
+  { id: 'sum', label: '종합', cls: 'v-sum' },
+  { id: 'rubric', label: '척도표', cls: '' },
+];
+// 3학년 보조부와 같은 주소(github.io)에 올려도 저장값이 섞이지 않도록 1학년 전용 이름 사용
+const LS = { urlBase: 'paBojo1.urlBase', url: 'paBojo1.url', pin: 'paBojo1.pin', pending: 'paBojo1.pending', cls: 'paBojo1.cls', view: 'paBojo1.view' };
+const ls = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+};
+
+/* ===================== 채점 (척도표와 동일) ===================== */
+const BASE_NOTES = ['미응시', '결시'], OUT_NOTE = '전출';
+const num = v => (v === '' || v === null || v === undefined || isNaN(Number(v))) ? null : Number(v);
+const best = (a, b, fn) => { const v = [num(a), num(b)].filter(x => x !== null); return v.length ? fn(...v) : null; };
+function score(r) {
+  const o = {};
+  o.sBest = best(r.s1, r.s2, Math.max);
+  o.pBest = best(r.p1, r.p2, Math.max);
+  o.sv = o.sBest === null ? null : o.sBest >= 8 ? 50 : o.sBest >= 6 ? 40 : o.sBest >= 4 ? 30 : 20;
+  o.ps = o.pBest === null ? null : o.pBest >= 15 ? 50 : o.pBest >= 12 ? 40 : o.pBest >= 9 ? 30 : 20;
+  if (BASE_NOTES.includes(r.note_vb)) o.vb = 20;
+  else if (r.note_vb === OUT_NOTE) o.vb = null;
+  else o.vb = (o.sv !== null && o.ps !== null) ? o.sv + o.ps : null;
+
+  const rb = best(r.r1, r.r2, Math.min);
+  o.runSec = rb === null ? null : Math.floor(rb);
+  o.rs = o.runSec === null ? null : o.runSec < 60 ? 30 : o.runSec <= 90 ? 20 : 10;
+  const shots = [r.o3, r.o5, r.o7, r.t3, r.t5, r.t7].map(num);
+  o.shotSum = shots.every(x => x !== null) ? shots.reduce((a, b) => a + b, 0) : null;
+  const t = o.shotSum;
+  o.ss = t === null ? null : t >= 390 ? 70 : t >= 361 ? 60 : t >= 331 ? 50 : t >= 301 ? 40 : t >= 271 ? 30 : 20;
+  if (BASE_NOTES.includes(r.note_ls)) o.ls = 20;
+  else if (r.note_ls === OUT_NOTE) o.ls = null;
+  else o.ls = (o.rs !== null && o.ss !== null) ? o.rs + o.ss : null;
+
+  o.vbw = o.vb === null ? null : o.vb * 0.5;
+  o.lsw = o.ls === null ? null : o.ls * 0.5;
+  o.total = (o.vbw === null || o.lsw === null) ? null : o.vbw + o.lsw;
+  return o;
+}
+// 입력 칸: max = 허용 최댓값, time = 레이저런 기록(초)
+const FIELDS = {
+  s1: { max: 10 }, s2: { max: 10 }, p1: { max: 999 }, p2: { max: 999 },
+  r1: { time: true }, r2: { time: true },
+  o3: { max: 100 }, o5: { max: 100 }, o7: { max: 100 }, t3: { max: 100 }, t5: { max: 100 }, t7: { max: 100 },
+};
+const INPUT_KEYS = ['name', 'note_vb', 's1', 's2', 'p1', 'p2', 'note_ls', 'r1', 'r2', 'o3', 'o5', 'o7', 't3', 't5', 't7'];
+// 레이저런 기록: "75.4"(초) 또는 "1:15.4"(분:초) → 초
+function parseTime(s) {
+  s = String(s).trim();
+  let m;
+  if ((m = s.match(/^(\d+(?:\.\d+)?)$/))) return Number(m[1]);
+  if ((m = s.match(/^(\d+):([0-5]?\d(?:\.\d+)?)$/))) return Number(m[1]) * 60 + Number(m[2]);
+  return null;
+}
+const mmss = sec => sec === null || sec === undefined ? '' : Math.floor(sec / 60) + ':' + String(Math.floor(sec % 60)).padStart(2, '0');
+
+/* ===================== 상태 ===================== */
+const state = {
+  url: (ls.get(LS.urlBase) === API_URL && ls.get(LS.url)) || API_URL, pin: ls.get(LS.pin) || '',
+  cls: CLASSES.includes(ls.get(LS.cls)) ? ls.get(LS.cls) : CLASSES[0],
+  view: VIEWS.some(v => v.id === ls.get(LS.view)) ? ls.get(LS.view) : 'vb',
+  rows: {}, loaded: false, sheetUrl: '',
+};
+const key = (cls, no) => cls + '|' + no;
+function row(cls, no) {
+  const k = key(cls, no);
+  if (!state.rows[k]) { state.rows[k] = { cls, no }; INPUT_KEYS.forEach(f => state.rows[k][f] = ''); }
+  return state.rows[k];
+}
+let pending = {};
+try { pending = JSON.parse(ls.get(LS.pending) || '{}') || {}; } catch (e) { pending = {}; }
+const savePendingLocal = () => ls.set(LS.pending, JSON.stringify(pending));
+
+/* ===================== API ===================== */
+async function api(action, extra = {}) {
+  if (!state.url) throw new Error('설정에서 구글시트를 연결해 주세요.');
+  const res = await fetch(state.url, { method: 'POST', body: JSON.stringify({ pin: state.pin, action, ...extra }) });
+  let j;
+  try { j = await res.json(); } catch (e) { throw new Error('응답을 읽지 못했습니다. 웹 앱 URL과 배포 권한(모든 사용자)을 확인하세요.'); }
+  if (!j.ok) throw new Error(j.error || '요청 실패');
+  return j;
+}
+function setStatus(text, kind) {
+  const el = document.getElementById('status');
+  el.textContent = text; el.className = 'status' + (kind ? ' ' + kind : '');
+}
+async function load() {
+  setStatus('불러오는 중', 'busy');
+  try {
+    const j = await api('list');
+    state.rows = {};
+    j.rows.forEach(r => {
+      const o = row(r.cls, Number(r.no));
+      INPUT_KEYS.forEach(f => { o[f] = r[f] === null || r[f] === undefined ? '' : String(r[f]); });
+    });
+    Object.values(pending).forEach(p => Object.assign(row(p.cls, p.no), p));
+    state.sheetUrl = j.sheetUrl || '';
+    state.loaded = true;
+    const n = Object.keys(pending).length;
+    setStatus(n ? '저장 대기 중' : '불러옴 ' + hhmm(), n ? 'busy' : '');
+    render();
+    if (n) scheduleFlush(300);
+  } catch (e) {
+    setStatus(e.message, 'err');
+    state.loaded = false;
+    render();
+    if (!state.url || /비밀번호/.test(e.message)) openSettings(e.message);
+  }
+}
+let flushTimer = null, flushing = false;
+function markDirty(r) {
+  pending[key(r.cls, r.no)] = { ...r };
+  savePendingLocal();
+  setStatus('저장 대기 중', 'busy');
+  scheduleFlush(900);
+}
+function scheduleFlush(ms) { clearTimeout(flushTimer); flushTimer = setTimeout(flush, ms); }
+async function flush() {
+  if (flushing) { scheduleFlush(500); return; }
+  const batch = Object.values(pending);
+  if (!batch.length) return;
+  flushing = true;
+  const sent = {};
+  batch.forEach(r => { sent[key(r.cls, r.no)] = JSON.stringify(r); rowEl(r.cls, r.no)?.classList.add('saving'); });
+  setStatus('저장 중', 'busy');
+  try {
+    await api('save', { rows: batch });
+    for (const k in sent) if (pending[k] && JSON.stringify(pending[k]) === sent[k]) delete pending[k];
+    savePendingLocal();
+    batch.forEach(r => rowEl(r.cls, r.no)?.classList.remove('saving', 'failed'));
+    const n = Object.keys(pending).length;
+    setStatus(n ? '저장 대기 중' : '저장됨 ' + hhmm(), n ? 'busy' : '');
+    if (n) scheduleFlush(600);
+  } catch (e) {
+    batch.forEach(r => { const el = rowEl(r.cls, r.no); el?.classList.remove('saving'); el?.classList.add('failed'); });
+    setStatus('저장 실패 · 10초 후 재시도', 'err');
+    scheduleFlush(10000);
+  } finally { flushing = false; }
+}
+window.addEventListener('beforeunload', e => { if (Object.keys(pending).length) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('online', () => scheduleFlush(200));
+
+/* ===================== 렌더링 ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = (v, d = 0) => v === null || v === undefined ? '' : (d ? Number(v).toFixed(d) : String(v));
+const hhmm = () => new Date().toTimeString().slice(0, 5);
+const rowEl = (cls, no) => document.querySelector(`tr[data-k="${key(cls, no)}"]`);
+const compact = matchMedia('(max-width:640px)');
+compact.addEventListener('change', () => { if (!document.activeElement?.matches('input.cell')) render(); });
+
+function classRows(cls) {
+  const list = [];
+  for (let no = 1; no <= MAXN; no++) list.push(row(cls, no));
+  let last = 0;
+  list.forEach(r => { if (INPUT_KEYS.some(f => r[f] !== '')) last = r.no; });
+  return list.slice(0, last);
+}
+const isOut = (r, f) => r[f] === OUT_NOTE;
+
+function renderTabs() {
+  let h = CLASSES.map(c => `<button class="tab ${c === state.cls ? 'on' : ''}" data-cls="${c}">${c}반</button>`).join('');
+  h += '<span class="sep"></span>';
+  h += VIEWS.map(v => `<button class="tab ${v.cls} ${v.id === state.view ? 'on' : ''}" data-view="${v.id}">${v.label}</button>`).join('');
+  $('#tabs').innerHTML = h;
+}
+function noteSel(r, f) {
+  const v = r[f];
+  return `<select class="note ${v ? 'set' : ''}" data-f="${f}" aria-label="비고">
+    <option value="" ${!v ? 'selected' : ''}>—</option>
+    ${[...BASE_NOTES, OUT_NOTE].map(o => `<option ${v === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+}
+function inp(r, f, off) {
+  const t = FIELDS[f].time;
+  return `<input class="cell${t ? ' time' : ''}" data-f="${f}" inputmode="${t ? 'decimal' : 'numeric'}" enterkeyhint="next" autocomplete="off" value="${esc(r[f])}" ${off ? 'disabled' : ''} aria-label="${f}">`;
+}
+const noteTag = v => v ? `<small class="tag">${esc(v)}</small>` : '';
+
+function render() {
+  renderTabs();
+  const m = $('#main');
+  if (state.view === 'rubric') { m.innerHTML = rubricHTML(); return; }
+  if (!state.loaded) {
+    m.innerHTML = `<div class="card empty"><b>구글시트에 연결되지 않았습니다</b>설정에서 웹 앱 URL과 비밀번호를 입력하세요.<br><br><button class="btn primary" onclick="openSettings()">설정 열기</button></div>`;
+    return;
+  }
+  const rows = classRows(state.cls);
+  const bar = `<div class="bar"><h2>${state.cls}반 · ${VIEWS.find(v => v.id === state.view).label}</h2>
+    <button class="btn" onclick="openRoster()">명렬 입력</button>
+    ${state.view === 'sum' ? '<button class="btn" onclick="downloadCSV(false)">이 반 CSV</button><button class="btn" onclick="downloadCSV(true)">전체 CSV</button>' : ''}
+    ${state.sheetUrl ? `<a class="btn" href="${esc(state.sheetUrl)}" target="_blank" rel="noopener">구글시트 열기</a>` : ''}</div>`;
+  if (!rows.length) {
+    m.innerHTML = bar + `<div class="card empty"><b>${state.cls}반 명렬이 비어 있습니다</b>학생 이름을 먼저 넣어 주세요.<br><br><button class="btn primary" onclick="openRoster()">명렬 입력</button></div>`;
+    return;
+  }
+  const c2 = compact.matches;
+  let head, body, hint;
+  if (state.view === 'vb') {
+    head = c2
+      ? `<tr class="group"><th rowspan="2">번호</th><th rowspan="2" class="name">이름</th><th rowspan="2">비고</th>
+         <th colspan="2" class="g-vb">서브</th><th colspan="2" class="g-vb">언더패스</th><th rowspan="2" class="g-vb">총점</th></tr>
+         <tr><th>1차</th><th>2차</th><th>1차</th><th>2차</th></tr>`
+      : `<tr class="group"><th rowspan="2">번호</th><th rowspan="2" class="name">이름</th><th rowspan="2">비고</th>
+         <th colspan="3" class="g-vb">서브의 정확성 (10개 중 성공)</th><th colspan="3" class="g-vb">언더핸드 패스 (연속 횟수)</th><th rowspan="2" class="g-vb">총점</th></tr>
+         <tr><th>1차</th><th>2차</th><th>점수</th><th>1차</th><th>2차</th><th>점수</th></tr>`;
+    body = rows.map(r => {
+      const c = score(r), off = !!r.note_vb;
+      const sc = o => c2 ? `<small class="sub" data-o="${o}">${fmt(c[o])}</small>` : '';
+      const col = o => c2 ? '' : `<td class="out" data-o="${o}">${fmt(c[o])}</td>`;
+      return `<tr data-k="${key(r.cls, r.no)}" class="${off ? 'off' : ''}"><td class="no">${r.no}</td><td class="name">${esc(r.name)}</td>
+        <td class="note">${noteSel(r, 'note_vb')}</td>
+        <td>${inp(r, 's1', off)}</td><td>${inp(r, 's2', off)}${sc('sv')}</td>${col('sv')}
+        <td>${inp(r, 'p1', off)}</td><td>${inp(r, 'p2', off)}${sc('ps')}</td>${col('ps')}
+        <td class="tot vb" data-o="vb">${fmt(c.vb)}</td></tr>`;
+    }).join('');
+    hint = '서브는 10개 중 목표 구역 성공 개수, 언더패스는 연속 성공 횟수를 입력합니다. 1·2차 중 더 높은 기록으로 채점합니다(1차만 입력해도 점수가 나옵니다).';
+  } else if (state.view === 'ls') {
+    head = `<tr class="group"><th rowspan="2">번호</th><th rowspan="2" class="name">이름</th><th rowspan="2">비고</th>
+      <th colspan="${c2 ? 3 : 4}" class="g-ls">레이저런 (초)</th><th colspan="3" class="g-ls">한손 사격</th><th colspan="3" class="g-ls">양손 사격</th>
+      <th rowspan="2" class="g-ls">사격<br>합계</th>${c2 ? '' : '<th rowspan="2" class="g-ls">사격<br>점수</th>'}<th rowspan="2" class="g-ls">총점</th></tr>
+      <tr><th>1차</th><th>2차</th><th>기록</th>${c2 ? '' : '<th>점수</th>'}<th>3m</th><th>5m</th><th>7m</th><th>3m</th><th>5m</th><th>7m</th></tr>`;
+    body = rows.map(r => {
+      const c = score(r), off = !!r.note_ls;
+      return `<tr data-k="${key(r.cls, r.no)}" class="${off ? 'off' : ''}"><td class="no">${r.no}</td><td class="name">${esc(r.name)}</td>
+        <td class="note">${noteSel(r, 'note_ls')}</td>
+        <td>${inp(r, 'r1', off)}</td><td>${inp(r, 'r2', off)}</td>
+        <td class="out" data-o="runSec" data-fmt="mmss">${mmss(c.runSec)}${c2 ? `<small class="sub" data-o="rs">${fmt(c.rs)}</small>` : ''}</td>
+        ${c2 ? '' : `<td class="out" data-o="rs">${fmt(c.rs)}</td>`}
+        ${['o3', 'o5', 'o7', 't3', 't5', 't7'].map(f => `<td>${inp(r, f, off)}</td>`).join('')}
+        <td class="out" data-o="shotSum">${fmt(c.shotSum)}${c2 ? `<small class="sub" data-o="ss">${fmt(c.ss)}</small>` : ''}</td>
+        ${c2 ? '' : `<td class="out" data-o="ss">${fmt(c.ss)}</td>`}
+        <td class="tot ls" data-o="ls">${fmt(c.ls)}</td></tr>`;
+    }).join('');
+    hint = '레이저런은 초(예: 75.4) 또는 분:초(예: 1:15.4)로 입력하고, 1·2차 중 빠른 기록을 초 단위 버림해 채점합니다. 사격은 거리별 10발 점수(0~100)를 입력합니다.';
+  } else {
+    head = `<tr class="group"><th rowspan="2">번호</th><th rowspan="2" class="name">이름</th>
+      <th colspan="2" class="g-vb">배구</th><th colspan="2" class="g-ls">레이저 사격</th><th rowspan="2" class="g-sum">수행평가<br>합계</th></tr>
+      <tr><th>점수</th><th>×50%</th><th>점수</th><th>×50%</th></tr>`;
+    body = rows.map(r => {
+      const c = score(r);
+      return `<tr data-k="${key(r.cls, r.no)}" class="${isOut(r, 'note_vb') && isOut(r, 'note_ls') ? 'off' : ''}"><td class="no">${r.no}</td><td class="name">${esc(r.name)}</td>
+        <td class="tot vb">${fmt(c.vb)}${noteTag(r.note_vb)}</td><td class="out">${fmt(c.vbw, 1)}</td>
+        <td class="tot ls">${fmt(c.ls)}${noteTag(r.note_ls)}</td><td class="out">${fmt(c.lsw, 1)}</td>
+        <td class="tot sum">${fmt(c.total, 1)}</td></tr>`;
+    }).join('');
+    hint = '배구·레이저 사격 점수가 모두 있어야 합계가 계산됩니다. 전출 학생은 통계에서 빠집니다.';
+  }
+  const kpis = state.view === 'sum' ? kpiHTML(rows) : '';
+  m.innerHTML = bar + kpis + `<div class="card"><div class="scroll"><table class="t-${state.view}">
+    <thead>${head}</thead><tbody id="tb">${body}</tbody><tfoot id="tf">${footHTML(rows)}</tfoot></table></div></div>
+    <p class="hint">${hint}${state.view !== 'sum' ? ' 입력하면 자동으로 구글시트에 저장되고, Enter를 누르면 아래 학생 칸으로 이동합니다. 비고에서 미응시·결시를 고르면 기본점수 20점입니다.' : ''}</p>`;
+}
+
+function stats(vals) {
+  const v = vals.filter(x => x !== null);
+  if (!v.length) return { n: 0, avg: '', max: '', min: '' };
+  return { n: v.length, avg: (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1), max: Math.max(...v), min: Math.min(...v) };
+}
+function footHTML(rows) {
+  const cs = rows.map(score);
+  const cols = document.querySelector('#tb tr')?.children.length || ({ vb: compact.matches ? 8 : 10, ls: compact.matches ? 15 : 17, sum: 7 })[state.view];
+  if (state.view === 'sum') {
+    const a = stats(cs.map(c => c.vb)), b = stats(cs.map(c => c.ls)), t = stats(cs.map(c => c.total));
+    return `<tr><td class="lbl" colspan="2">평균</td><td>${a.avg}</td><td></td><td>${b.avg}</td><td></td><td>${t.avg}</td></tr>`;
+  }
+  const s = stats(cs.map(c => c[state.view]));
+  return `<tr><td class="lbl" colspan="2">응시 ${s.n}명</td><td colspan="${cols - 3}" style="text-align:right;color:var(--sub)">평균 · 최고 · 최저</td><td>${s.avg}<br><small>${s.max} · ${s.min}</small></td></tr>`;
+}
+function kpiHTML(rows) {
+  const cs = rows.map(score);
+  const a = stats(cs.map(c => c.vb)), b = stats(cs.map(c => c.ls)), t = stats(cs.map(c => c.total));
+  const active = rows.filter(r => r.name && !(isOut(r, 'note_vb') && isOut(r, 'note_ls'))).length;
+  return `<div class="kpis">
+    <div class="kpi"><span>학생 수</span><b>${active}</b></div>
+    <div class="kpi"><span>배구 평가 완료</span><b>${a.n}</b></div>
+    <div class="kpi"><span>레이저 사격 평가 완료</span><b>${b.n}</b></div>
+    <div class="kpi"><span>합계 평균</span><b>${t.avg || '—'}</b></div></div>`;
+}
+
+function rubricHTML() {
+  const band = (rows) => rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+  return `<div class="rubric">
+  <div class="card"><h3 style="color:var(--vb)">배구의 기본기능 (100점 · 반영 50%)</h3>
+    <p>[9체02-17] [9체02-18] · 실기 · 9~10월 · 2차 실시하여 더 높은 점수 부여<br>
+    언더핸드 패스: 시작 자세에서 공을 스스로 띄운 후 실시, 바닥에 떨어뜨리지 않고 연속 수행한 횟수. 토스(set)나 손이 아닌 다른 신체로 실시한 횟수는 제외.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <table><thead><tr><th>서브 (10개 중)</th><th>점수</th></tr></thead><tbody>${band([['8개 이상', 50], ['6~7개', 40], ['4~5개', 30], ['3개 이하', 20]])}</tbody></table>
+      <table><thead><tr><th>언더패스 (연속)</th><th>점수</th></tr></thead><tbody>${band([['15회 이상', 50], ['12~14회', 40], ['9~11회', 30], ['8회 이하', 20]])}</tbody></table>
+    </div></div>
+  <div class="card"><h3 style="color:var(--ls)">레이저 사격 (100점 · 반영 50%)</h3>
+    <p>[9체02-05] [9체02-06] · 실기 · 11~12월<br>
+    사격: 3m·5m·7m에서 한 손·양 손 각 10회(총 60회, 600점), 거리별 점수 합산.<br>
+    레이저런: 7m 거리, 레이저 사격+왕복달리기 2회 반복 시간. 소수점 이하 버림(예: 11.9초 → 11초).</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <table><thead><tr><th>사격 합산</th><th>점수</th></tr></thead><tbody>${band([['390점 이상', 70], ['361~389', 60], ['331~360', 50], ['301~330', 40], ['271~300', 30], ['270점 이하', 20]])}</tbody></table>
+      <table><thead><tr><th>레이저런</th><th>점수</th></tr></thead><tbody>${band([['1분 미만', 30], ['1분~1분 30초', 20], ['1분 30초 초과', 10]])}</tbody></table>
+    </div></div>
+  <div class="card"><h3>유의사항</h3>
+    <p style="margin:0">· 평가는 수업 중에 실시하며, 두 평가의 반영비율은 각각 50%입니다.<br>
+    · 수업에는 참여하나 수행평가를 실시하지 않은 학생은 기본점수 20점 → 비고 <b>미응시</b><br>
+    · (장기) 결시생(위탁학생 포함)은 응시 기회 부여 후에도 미응시하는 경우 20점 → 비고 <b>결시</b><br>
+    · 전출한 학생 → 비고 <b>전출</b> (점수·통계에서 제외)<br>
+    · 장애학생은 일반학생과 동일한 기준으로 평가합니다.<br>
+    · 전입생은 원적교 성적이 있으면 인정하고, 없으면 일정 기간 응시 기회를 준 뒤 평가합니다.</p></div>
+  </div>`;
+}
+
+/* ===================== 입력 처리 ===================== */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-cls],[data-view]');
+  if (!t) return;
+  if (t.dataset.cls) { state.cls = t.dataset.cls; ls.set(LS.cls, state.cls); }
+  if (t.dataset.view) { state.view = t.dataset.view; ls.set(LS.view, state.view); }
+  render();
+  window.scrollTo({ top: 0 });
+});
+function refreshRow(tr, r) {
+  const c = score(r);
+  tr.querySelectorAll('[data-o]').forEach(el => {
+    const v = el.dataset.fmt === 'mmss' ? mmss(c[el.dataset.o]) : fmt(c[el.dataset.o]);
+    const sub = el.querySelector(':scope > small.sub');
+    if (!sub) { el.textContent = v; return; }
+    let tn = el.firstChild;
+    if (tn.nodeType !== 3) { tn = document.createTextNode(''); el.insertBefore(tn, sub); }
+    tn.nodeValue = v;
+  });
+  $('#tf').innerHTML = footHTML(classRows(state.cls));
+}
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (!el.matches('input.cell')) return;
+  const tr = el.closest('tr'), [cls, no] = tr.dataset.k.split('|');
+  const r = row(cls, Number(no)), f = el.dataset.f, spec = FIELDS[f];
+  let ok, val;
+  if (spec.time) {
+    const raw = el.value.replace(/[^\d.:]/g, '');
+    if (raw !== el.value) el.value = raw;
+    const sec = parseTime(raw);
+    ok = raw === '' || (sec !== null && sec > 0 && sec < 600);
+    val = raw === '' ? '' : String(Math.round(sec * 100) / 100);
+    el.title = ok ? '' : '초(예: 75.4) 또는 분:초(예: 1:15.4)로 입력하세요';
+  } else {
+    const raw = el.value.replace(/[^\d]/g, '');
+    if (raw !== el.value) el.value = raw;
+    ok = raw === '' || Number(raw) <= spec.max;
+    val = raw === '' ? '' : String(Number(raw));
+    el.title = ok ? '' : `0~${spec.max} 사이로 입력하세요`;
+  }
+  el.classList.toggle('bad', !ok);
+  if (!ok) return;
+  r[f] = val;
+  refreshRow(tr, r);
+  markDirty(r);
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (!el.matches('select.note')) return;
+  const tr = el.closest('tr'), [cls, no] = tr.dataset.k.split('|');
+  const r = row(cls, Number(no));
+  r[el.dataset.f] = el.value;
+  el.classList.toggle('set', !!el.value);
+  tr.classList.toggle('off', !!el.value);
+  tr.querySelectorAll('input.cell').forEach(i => { i.disabled = !!el.value; });
+  refreshRow(tr, r);
+  markDirty(r);
+});
+document.addEventListener('keydown', e => {
+  const el = e.target;
+  if (!el.matches('input.cell')) return;
+  const dir = e.key === 'Enter' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+  if (!dir) return;
+  e.preventDefault();
+  let tr = el.closest('tr');
+  while ((tr = dir > 0 ? tr.nextElementSibling : tr.previousElementSibling)) {
+    const nx = tr.querySelector(`input.cell[data-f="${el.dataset.f}"]:not(:disabled)`);
+    if (nx) { nx.focus(); nx.select(); return; }
+  }
+  el.blur();
+});
+document.addEventListener('focusin', e => { if (e.target.matches('input.cell')) e.target.select(); });
+
+/* ===================== 명렬 ===================== */
+function openRoster() {
+  $('#rosterTitle').textContent = `${state.cls}반 명렬 입력`;
+  $('#rosterText').value = classRows(state.cls).filter(r => r.name).map(r => `${r.no}\t${r.name}`).join('\n');
+  $('#rosterMsg').textContent = '';
+  $('#mRoster').classList.add('on');
+  setTimeout(() => $('#rosterText').focus(), 50);
+}
+$('#btnRosterCancel').onclick = () => $('#mRoster').classList.remove('on');
+$('#btnRosterSave').onclick = () => {
+  const lines = $('#rosterText').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const map = {}; let seq = 0, err = '';
+  lines.forEach(line => {
+    const m = line.match(/^(\d{1,2})\s*[\t ,.번]\s*(.+)$/);
+    let no, name;
+    if (m) { no = Number(m[1]); name = m[2].trim(); seq = no; } else { no = ++seq; name = line; }
+    if (no < 1 || no > MAXN) err = `번호는 1~${MAXN} 사이여야 합니다: ${line}`;
+    map[no] = name.split(/\t/)[0].trim();
+  });
+  if (err) { $('#rosterMsg').textContent = err; $('#rosterMsg').className = 'msg err'; return; }
+  for (let no = 1; no <= MAXN; no++) {
+    const r = row(state.cls, no), nm = map[no] || '';
+    if (r.name !== nm) { r.name = nm; markDirty(r); }
+  }
+  $('#mRoster').classList.remove('on');
+  render();
+};
+
+/* ===================== 설정 ===================== */
+function openSettings(msg) {
+  $('#inUrl').value = state.url; $('#inPin').value = state.pin;
+  if (API_URL) $('#setDesc').innerHTML = '구글시트 주소는 미리 입력되어 있습니다. <b>Code.gs</b> 맨 위 PIN에 정한 비밀번호만 입력하세요. 이 기기의 브라우저에만 저장됩니다.';
+  $('#setMsg').textContent = msg || ''; $('#setMsg').className = 'msg' + (msg ? ' err' : '');
+  $('#mSettings').classList.add('on');
+}
+$('#btnSettings').onclick = () => openSettings();
+$('#btnSetCancel').onclick = () => $('#mSettings').classList.remove('on');
+$('#btnSetSave').onclick = async () => {
+  const url = $('#inUrl').value.trim(), pin = $('#inPin').value.trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) {
+    $('#setMsg').textContent = 'URL은 https://script.google.com/macros/s/…/exec 형식이어야 합니다.'; $('#setMsg').className = 'msg err'; return;
+  }
+  state.url = url; state.pin = pin;
+  $('#setMsg').textContent = '연결 확인 중…'; $('#setMsg').className = 'msg';
+  try {
+    await api('list');
+    ls.set(LS.url, url); ls.set(LS.urlBase, API_URL); ls.set(LS.pin, pin);
+    $('#setMsg').textContent = '연결되었습니다.'; $('#setMsg').className = 'msg ok';
+    setTimeout(() => $('#mSettings').classList.remove('on'), 500);
+    load();
+  } catch (e) { $('#setMsg').textContent = e.message; $('#setMsg').className = 'msg err'; }
+};
+$('#btnReload').onclick = () => { if (Object.keys(pending).length) { flush().then(load); } else load(); };
+
+/* ===================== CSV ===================== */
+function downloadCSV(all) {
+  const head = ['반', '번호', '이름', '배구비고', '서브1차', '서브2차', '서브점수', '패스1차', '패스2차', '패스점수', '배구점수',
+    '레이저비고', '레이저런1차(초)', '레이저런2차(초)', '레이저런기록(초)', '레이저런점수', '한손3m', '한손5m', '한손7m', '양손3m', '양손5m', '양손7m',
+    '사격합계', '사격점수', '레이저사격점수', '배구반영(50%)', '레이저반영(50%)', '수행평가합계'];
+  const lines = [head];
+  (all ? CLASSES : [state.cls]).forEach(cls => classRows(cls).forEach(r => {
+    const c = score(r);
+    lines.push([r.cls, r.no, r.name, r.note_vb, r.s1, r.s2, fmt(c.sv), r.p1, r.p2, fmt(c.ps), fmt(c.vb),
+      r.note_ls, r.r1, r.r2, fmt(c.runSec), fmt(c.rs), r.o3, r.o5, r.o7, r.t3, r.t5, r.t7,
+      fmt(c.shotSum), fmt(c.ss), fmt(c.ls), fmt(c.vbw, 1), fmt(c.lsw, 1), fmt(c.total, 1)]);
+  }));
+  const csv = '﻿' + lines.map(l => l.map(v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `수행평가_${all ? '1학년전체' : state.cls + '반'}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ===================== 시작 ===================== */
+render();
+if (state.url && state.pin) load(); else openSettings(API_URL ? '비밀번호(PIN)를 입력하세요.' : '');
+</script>
+</body>
+</html>
